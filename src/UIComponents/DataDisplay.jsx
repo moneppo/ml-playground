@@ -2,11 +2,17 @@
 import PropTypes from "prop-types";
 import React, { Component } from "react";
 import { connect } from "react-redux";
-import { setLabelColumn, setSelectedFeatures, setShowPredict } from "../redux";
+import {
+  setLabelColumn,
+  setSelectedFeatures,
+  setShowPredict,
+  getFeatures
+} from "../redux";
 
 class DataDisplay extends Component {
   static propTypes = {
     data: PropTypes.array,
+    features: PropTypes.array,
     labelColumn: PropTypes.string,
     setLabelColumn: PropTypes.func.isRequired,
     selectedFeatures: PropTypes.array,
@@ -40,14 +46,10 @@ class DataDisplay extends Component {
     this.props.setShowPredict(false);
   };
 
-  getFeatures = () => {
-    return Object.keys(this.props.data[0]);
-  };
-
   render() {
     return (
       <div>
-        {this.props.data && (
+        {this.props.data.length > 0 && (
           <div>
             <h2>Imported Data</h2>
             {this.state.showRawData && (
@@ -66,7 +68,7 @@ class DataDisplay extends Component {
                   value={this.props.labelColumn}
                   onChange={this.handleChangeSelect}
                 >
-                  {this.getFeatures().map((feature, index) => {
+                  {this.props.features.map((feature, index) => {
                     return (
                       <option key={index} value={feature}>
                         {feature}
@@ -84,7 +86,7 @@ class DataDisplay extends Component {
                   value={this.props.selectedFeatures}
                   onChange={this.handleChangeMultiSelect}
                 >
-                  {this.getFeatures().map((feature, index) => {
+                  {this.props.features.map((feature, index) => {
                     return (
                       <option key={index} value={feature}>
                         {feature}
@@ -105,7 +107,8 @@ export default connect(
   state => ({
     data: state.data,
     labelColumn: state.labelColumn,
-    selectedFeatures: state.selectedFeatures
+    selectedFeatures: state.selectedFeatures,
+    features: getFeatures(state)
   }),
   dispatch => ({
     setSelectedFeatures(selectedFeatures) {

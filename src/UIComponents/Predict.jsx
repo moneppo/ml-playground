@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 import React, { Component } from "react";
 import { connect } from "react-redux";
 import train from "../train";
-import { setTestData } from "../redux";
+import { setTestData, getUniqueOptionsByColumn } from "../redux";
 
 class Predict extends Component {
   static propTypes = {
@@ -11,10 +11,17 @@ class Predict extends Component {
     selectedFeatures: PropTypes.array,
     testData: PropTypes.object,
     setTestData: PropTypes.func.isRequired,
-    prediction: PropTypes.object
+    prediction: PropTypes.object,
+    optionsByColumn: PropTypes.object
   };
 
   handleInput = (event, feature) => {
+    const testData = this.props.testData;
+    testData[feature] = event.target.value;
+    this.props.setTestData(testData);
+  };
+
+  handleChangeSelect = (event, feature) => {
     const testData = this.props.testData;
     testData[feature] = event.target.value;
     this.props.setTestData(testData);
@@ -36,10 +43,21 @@ class Predict extends Component {
                   <span key={index}>
                     <label>
                       {feature}:
-                      <input
-                        type="text"
-                        onChange={event => this.handleInput(event, feature)}
-                      />
+                      <select
+                        onChange={event =>
+                          this.handleChangeSelect(event, feature)
+                        }
+                      >
+                        {this.props.optionsByColumn[feature].map(
+                          (option, index) => {
+                            return (
+                              <option key={index} value={option}>
+                                {option}
+                              </option>
+                            );
+                          }
+                        )}
+                      </select>
                     </label>
                   </span>
                 );
@@ -69,7 +87,8 @@ export default connect(
     showPredict: state.showPredict,
     selectedFeatures: state.selectedFeatures,
     testData: state.testData,
-    prediction: state.prediction
+    prediction: state.prediction,
+    optionsByColumn: getUniqueOptionsByColumn(state)
   }),
   dispatch => ({
     setTestData(testData) {

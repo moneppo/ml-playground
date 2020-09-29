@@ -35,6 +35,7 @@ export default class SVMTrainer {
   addTrainingData() {
     const trainingExamples = this.state.data.map(this.extractExamples);
     const trainingLabels = this.state.data.map(this.extractLabels);
+    console.log("trainingLabels from SVMTrainer", trainingLabels);
     this.train(trainingExamples, trainingLabels);
   }
 

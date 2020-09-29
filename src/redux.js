@@ -34,7 +34,8 @@ export function setPrediction(prediction) {
 }
 
 const initialState = {
-  data: undefined,
+  data: [],
+  features: [],
   selectedFeatures: [],
   labelColumn: undefined,
   showPredict: false,
@@ -82,4 +83,26 @@ export default function rootReducer(state = initialState, action) {
     };
   }
   return state;
+}
+
+export function getFeatures(state) {
+  return state.data.length > 0 ? Object.keys(state.data[0]) : [];
+}
+
+export function getUniqueOptionsByColumn(state) {
+  let uniqueOptionsByColumn = {};
+  uniqueOptionsByColumn[state.labelColumn] = getUniqueOptions(
+    state,
+    state.labelColumn
+  );
+  getFeatures(state).map(
+    feature =>
+      (uniqueOptionsByColumn[feature] = getUniqueOptions(state, feature))
+  );
+  return uniqueOptionsByColumn;
+}
+
+function getUniqueOptions(state, column) {
+  const uniqueOptions = Array.from(new Set(state.data.map(row => row[column])));
+  return uniqueOptions;
 }
