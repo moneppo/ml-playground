@@ -19,12 +19,15 @@ export const initAll = function(options) {
   // Handle an optional mode.
   const mode = options && options.mode;
   const saveTrainedModel = options && options.saveTrainedModel;
+  const fetchTrainedModel = options && options.fetchTrainedModel;
+  console.log("options", options);
+  console.log("fetchTrainedModel", fetchTrainedModel);
   store.dispatch(setMode(mode));
   processMode(mode);
 
   ReactDOM.render(
     <Provider store={store}>
-      <App mode={mode} saveTrainedModel={saveTrainedModel} />
+      <App mode={mode} saveTrainedModel={fetchTrainedModel} />
     </Provider>,
     document.getElementById("root")
   );
