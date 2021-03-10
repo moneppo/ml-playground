@@ -151,15 +151,20 @@ class App extends Component {
           </BodyContainer>
         )}
 
-        {["dataDisplayLabel", "dataDisplayFeatures"].includes(currentPanel) && (
+        {[
+          "dataDisplaySingle",
+          "dataDisplayDouble",
+          "dataDisplayLabel",
+          "dataDisplayFeatures"
+        ].includes(currentPanel) && (
           <BodyContainer>
             <ContainerLeft>
               <DataDisplay />
             </ContainerLeft>
             <ContainerRight>
-              {currentPanel === "dataDisplayLabel" && <ColumnInspector />}
-              {currentPanel === "dataDisplayFeatures" && <CrossTab />}
-              {currentPanel === "dataDisplayFeatures" && <ScatterPlot />}
+              {currentPanel === "dataDisplaySingle" && <ColumnInspector />}
+              {currentPanel === "dataDisplayDouble" && <ScatterPlot />}
+              {currentPanel === "dataDisplayDouble" && <CrossTab />}
             </ContainerRight>
           </BodyContainer>
         )}

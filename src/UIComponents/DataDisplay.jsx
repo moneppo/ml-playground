@@ -2,7 +2,11 @@
 import PropTypes from "prop-types";
 import React, { Component } from "react";
 import { connect } from "react-redux";
-import { getEmptyCellDetails, setCurrentColumn } from "../redux";
+import {
+  getEmptyCellDetails,
+  setCurrentColumn,
+  setHighlightColumn
+} from "../redux";
 import { styles } from "../constants";
 
 class DataDisplay extends Component {
@@ -12,7 +16,10 @@ class DataDisplay extends Component {
     selectedFeatures: PropTypes.array,
     emptyCellDetails: PropTypes.array,
     setCurrentColumn: PropTypes.func,
+    setHighlightColumn: PropTypes.func,
     currentColumn: PropTypes.string,
+    previousColumn: PropTypes.string,
+    highlightColumn: PropTypes.string,
     currentPanel: PropTypes.string
   };
 
@@ -40,13 +47,21 @@ class DataDisplay extends Component {
   getColumnHeaderStyle = key => {
     let style;
 
-    if (key === this.props.currentColumn) {
+    if (key === this.props.currentColumn || key === this.props.previousColumn) {
       if (key === this.props.labelColumn) {
         style = styles.dataDisplayHeaderLabelSelected;
       } else if (this.props.selectedFeatures.includes(key)) {
         style = styles.dataDisplayHeaderFeatureSelected;
       } else {
         style = styles.dataDisplayHeaderSelected;
+      }
+    } else if (key === this.props.highlightColumn) {
+      if (key === this.props.labelColumn) {
+        style = styles.dataDisplayHeaderLabelUnselected;
+      } else if (this.props.selectedFeatures.includes(key)) {
+        style = styles.dataDisplayHeaderFeatureUnselected;
+      } else {
+        style = styles.dataDisplayHeaderHighlighted;
       }
     } else {
       if (key === this.props.labelColumn) {
@@ -64,13 +79,21 @@ class DataDisplay extends Component {
   getColumnCellStyle = key => {
     let style;
 
-    if (key === this.props.currentColumn) {
+    if (key === this.props.currentColumn || key === this.props.previousColumn) {
       if (key === this.props.labelColumn) {
         style = styles.dataDisplayCellLabelSelected;
       } else if (this.props.selectedFeatures.includes(key)) {
         style = styles.dataDisplayCellFeatureSelected;
       } else {
         style = styles.dataDisplayCellSelected;
+      }
+    } else if (key === this.props.highlightColumn) {
+      if (key === this.props.labelColumn) {
+        style = styles.dataDisplayCellLabelUnselected;
+      } else if (this.props.selectedFeatures.includes(key)) {
+        style = styles.dataDisplayCellFeatureUnselected;
+      } else {
+        style = styles.dataDisplayCellHighlighted;
       }
     } else {
       if (key === this.props.labelColumn) {
@@ -86,31 +109,50 @@ class DataDisplay extends Component {
   };
 
   render() {
-    const { data, setCurrentColumn, currentPanel } = this.props;
+    const { data, setCurrentColumn, setHighlightColumn, currentPanel } = this.props;
 
     return (
       <div id="data-display" style={styles.panel}>
-        <div style={styles.statement}>
-          Predict{" "}
-          <span style={styles.statementLabel}>
-            {this.props.labelColumn || "..."}
-          </span>
+        <div style={styles.largeText}>
+          {currentPanel === "dataDisplaySingle" && (
+            <div>Select a column to view its information:</div>
+          )}
+          {currentPanel === "dataDisplayDouble" && (
+            <div>Select two columns to view their correlation:</div>
+          )}
+          {currentPanel === "dataDisplayLabel" && (
+            <div>Select one column to predict:</div>
+          )}
           {currentPanel === "dataDisplayFeatures" && (
-            <span>
-              {" "}
-              based on{" "}
-              <span style={styles.statementFeature}>
-                {this.props.selectedFeatures.length > 0
-                  ? this.props.selectedFeatures.join(", ")
-                  : ".."}
-              </span>
-              {"."}
-            </span>
+            <div>Select one or more columns to do the prediction:</div>
           )}
         </div>
+
+        {["dataDisplayLabel", "dataDisplayFeatures"].includes(currentPanel) && (
+          <div style={styles.statement}>
+            Predict{" "}
+            <span style={styles.statementLabel}>
+              {this.props.labelColumn || "..."}
+            </span>
+            {currentPanel === "dataDisplayFeatures" && (
+              <span>
+                {" "}
+                based on{" "}
+                <span style={styles.statementFeature}>
+                  {this.props.selectedFeatures.length > 0
+                    ? this.props.selectedFeatures.join(", ")
+                    : ".."}
+                </span>
+                {"."}
+              </span>
+            )}
+            <br />
+          </div>
+        )}
+
         {this.state.showRawData && (
           <div style={styles.tableParent}>
-            <table style={styles.dataDisplayTable}>
+            <table id="data-display" style={styles.dataDisplayTable}>
               <thead>
                 <tr>
                   {data.length > 0 &&
@@ -120,6 +162,7 @@ class DataDisplay extends Component {
                           key={key}
                           style={this.getColumnHeaderStyle(key)}
                           onClick={() => setCurrentColumn(key)}
+                          onMouseEnter={() => setHighlightColumn(key)}
                         >
                           {key}
                         </th>
@@ -139,6 +182,7 @@ class DataDisplay extends Component {
                                 key={key}
                                 style={this.getColumnCellStyle(key)}
                                 onClick={() => setCurrentColumn(key)}
+                                onMouseEnter={() => setHighlightColumn(key)}
                               >
                                 {row[key]}
                               </td>
@@ -171,11 +215,16 @@ export default connect(
     selectedFeatures: state.selectedFeatures,
     emptyCellDetails: getEmptyCellDetails(state),
     currentColumn: state.currentColumn,
+    previousColumn: state.previousColumn,
+    highlightColumn: state.highlightColumn,
     currentPanel: state.currentPanel
   }),
   dispatch => ({
     setCurrentColumn(column) {
       dispatch(setCurrentColumn(column));
+    },
+    setHighlightColumn(column) {
+      dispatch(setHighlightColumn(column));
     }
   })
 )(DataDisplay);

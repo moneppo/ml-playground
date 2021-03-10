@@ -61,6 +61,7 @@ const SET_TRAINED_MODEL_DETAILS = "SET_TRAINED_MODEL_DETAILS";
 const SET_TRAINED_MODEL_DETAIL = "SET_TRAINED_MODEL_DETAIL";
 const SET_CURRENT_PANEL = "SET_CURRENT_PANEL";
 const SET_CURRENT_COLUMN = "SET_CURRENT_COLUMN";
+const SET_HIGHLIGHT_COLUMN = "SET_HIGHLIGHT_COLUMN";
 const SET_RESULTS_PHASE = "SET_RESULTS_PHASE";
 const SET_SAVE_STATUS = "SET_SAVE_STATUS";
 
@@ -202,6 +203,10 @@ export function setCurrentColumn(currentColumn) {
   return { type: SET_CURRENT_COLUMN, currentColumn };
 }
 
+export function setHighlightColumn(highlightColumn) {
+  return { type: SET_HIGHLIGHT_COLUMN, highlightColumn };
+}
+
 export function setResultsPhase(phase) {
   return { type: SET_RESULTS_PHASE, phase };
 }
@@ -237,6 +242,7 @@ const initialState = {
   trainedModelDetails: {},
   currentPanel: "selectDataset",
   currentColumn: undefined,
+  previousColumn: undefined,
   resultsPhase: undefined,
   saveStatus: undefined
 };
@@ -458,7 +464,14 @@ export default function rootReducer(state = initialState, action) {
     return {
       ...state,
       currentPanel: action.currentPanel,
-      currentColumn: undefined
+      currentColumn: undefined,
+      previousColumn: undefined
+    };
+  }
+  if (action.type === SET_HIGHLIGHT_COLUMN) {
+    return {
+      ...state,
+      highlightColumn: action.highlightColumn
     };
   }
   if (action.type === SET_CURRENT_COLUMN) {
@@ -473,11 +486,30 @@ export default function rootReducer(state = initialState, action) {
       } else if (!state.selectedFeatures.includes(action.currentColumn)) {
         return {
           ...state,
-          labelColumn: action.currentColumn,
-          currentColumn: action.currentColumn
+          labelColumn: action.currentColumn
+          //currentColumn: action.currentColumn
         };
       } else {
         return state;
+      }
+    } else if (state.currentPanel === "dataDisplaySingle") {
+      return {
+        ...state,
+        currentColumn: action.currentColumn
+      };
+    } else if (state.currentPanel === "dataDisplayDouble") {
+      if (state.previousColumn && state.currentColumn) {
+        return {
+          ...state,
+          previousColumn: undefined,
+          currentColumn: action.currentColumn
+        };
+      } else {
+        return {
+          ...state,
+          previousColumn: state.currentColumn,
+          currentColumn: action.currentColumn
+        };
       }
     } else if (state.currentPanel === "dataDisplayFeatures") {
       if (state.selectedFeatures.includes(action.currentColumn)) {
@@ -485,14 +517,14 @@ export default function rootReducer(state = initialState, action) {
           ...state,
           selectedFeatures: state.selectedFeatures.filter(
             item => item !== action.currentColumn
-          ),
-          currentColumn: undefined
+          )
+          //currentColumn: undefined
         };
       } else if (action.currentColumn !== state.labelColumn) {
         return {
           ...state,
-          selectedFeatures: [...state.selectedFeatures, action.currentColumn],
-          currentColumn: action.currentColumn
+          selectedFeatures: [...state.selectedFeatures, action.currentColumn]
+          //currentColumn: action.currentColumn
         };
       } else {
         return state;
@@ -989,6 +1021,8 @@ export function getPredictAvailable(state) {
 const panelList = [
   { id: "selectDataset", label: "Import" },
   { id: "specifyColumns", label: "Columns" },
+  { id: "dataDisplaySingle", label: "Single" },
+  { id: "dataDisplayDouble", label: "Double" },
   { id: "dataDisplayLabel", label: "Label" },
   { id: "dataDisplayFeatures", label: "Features" },
   { id: "selectTrainer", label: "Trainer" },
@@ -1083,12 +1117,18 @@ export function getPanelButtons(state) {
 
   if (state.currentPanel === "selectDataset") {
     prev = null;
-    next = isPanelEnabled(state, "dataDisplayLabel")
-      ? { panel: "dataDisplayLabel", text: "Continue" }
+    next = isPanelEnabled(state, "dataDisplaySingle")
+      ? { panel: "dataDisplaySingle", text: "Continue" }
       : null;
+  } else if (state.currentPanel === "dataDisplaySingle") {
+    prev = { panel: "selectDataset", text: "Back" };
+    next = { panel: "dataDisplayDouble", text: "Continue" };
+  } else if (state.currentPanel === "dataDisplayDouble") {
+    prev = { panel: "dataDisplaySingle", text: "Continue" };
+    next = { panel: "dataDisplayLabel", text: "Continue" };
   } else if (state.currentPanel === "dataDisplayLabel") {
-    prev = isPanelEnabled(state, "selectDataset")
-      ? { panel: "selectDataset", text: "Back" }
+    prev = isPanelEnabled(state, "dataDisplayDouble")
+      ? { panel: "dataDisplayDouble", text: "Back" }
       : null;
     next = isPanelEnabled(state, "dataDisplayFeatures")
       ? { panel: "dataDisplayFeatures", text: "Continue" }
@@ -1160,12 +1200,12 @@ export function getPanelButtons(state) {
  */
 
 export function getCrossTabData(state) {
-  if (!state.labelColumn || !state.currentColumn) {
+  if (!state.previousColumn || !state.currentColumn) {
     return null;
   }
 
   if (
-    state.columnsByDataType[state.labelColumn] !== ColumnTypes.CATEGORICAL ||
+    state.columnsByDataType[state.previousColumn] !== ColumnTypes.CATEGORICAL ||
     state.columnsByDataType[state.currentColumn] !== ColumnTypes.CATEGORICAL
   ) {
     return null;
@@ -1189,14 +1229,14 @@ export function getCrossTabData(state) {
     if (!existingEntry) {
       existingEntry = {
         featureValues,
-        labelCounts: { [row[state.labelColumn]]: 1 }
+        labelCounts: { [row[state.previousColumn]]: 1 }
       };
       results.push(existingEntry);
     } else {
-      if (!existingEntry.labelCounts[row[state.labelColumn]]) {
-        existingEntry.labelCounts[row[state.labelColumn]] = 1;
+      if (!existingEntry.labelCounts[row[state.previousColumn]]) {
+        existingEntry.labelCounts[row[state.previousColumn]] = 1;
       } else {
-        existingEntry.labelCounts[row[state.labelColumn]]++;
+        existingEntry.labelCounts[row[state.previousColumn]]++;
       }
     }
   }
@@ -1220,23 +1260,23 @@ export function getCrossTabData(state) {
   // Take inventory of all unique label values we have seen, which allows us to
   // generate the header at the top of the CrossTab UI.
 
-  const uniqueLabelValues = getUniqueOptions(state, state.labelColumn);
+  const uniqueLabelValues = getUniqueOptions(state, state.previousColumn);
 
   return {
     results,
     uniqueLabelValues,
     featureNames: [state.currentColumn],
-    labelName: state.labelColumn
+    labelName: state.previousColumn
   };
 }
 
 export function getScatterPlotData(state) {
-  if (!state.labelColumn || !state.currentColumn) {
+  if (!state.previousColumn || !state.currentColumn) {
     return null;
   }
 
   if (
-    state.columnsByDataType[state.labelColumn] !== ColumnTypes.CONTINUOUS ||
+    state.columnsByDataType[state.previousColumn] !== ColumnTypes.CONTINUOUS ||
     state.columnsByDataType[state.currentColumn] !== ColumnTypes.CONTINUOUS
   ) {
     return null;
@@ -1245,10 +1285,10 @@ export function getScatterPlotData(state) {
   // For each row, record the X (feature value) and Y (label value).
   const data = [];
   for (let row of state.data) {
-    data.push({ x: row[state.currentColumn], y: row[state.labelColumn] });
+    data.push({ x: row[state.currentColumn], y: row[state.previousColumn] });
   }
 
-  const label = state.labelColumn;
+  const label = state.previousColumn;
   const feature = state.currentColumn;
 
   return {
