@@ -152,8 +152,9 @@ class App extends Component {
         )}
 
         {[
-          "dataDisplayLabel",
           "dataDisplaySingle",
+          "dataDisplayDouble",
+          "dataDisplayLabel",
           "dataDisplayFeatures"
         ].includes(currentPanel) && (
           <BodyContainer>
@@ -161,9 +162,9 @@ class App extends Component {
               <DataDisplay />
             </ContainerLeft>
             <ContainerRight>
-              {currentPanel === "dataDisplayLabel" && <ColumnInspector />}
-              {currentPanel === "dataDisplaySingle" && <CrossTab />}
-              {currentPanel === "dataDisplayFeatures" && <ScatterPlot />}
+              {currentPanel === "dataDisplaySingle" && <ColumnInspector />}
+              {currentPanel === "dataDisplayDouble" && <ScatterPlot />}
+              {currentPanel === "dataDisplayDouble" && <CrossTab />}
             </ContainerRight>
           </BodyContainer>
         )}

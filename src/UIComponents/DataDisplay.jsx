@@ -13,6 +13,7 @@ class DataDisplay extends Component {
     emptyCellDetails: PropTypes.array,
     setCurrentColumn: PropTypes.func,
     currentColumn: PropTypes.string,
+    previousColumn: PropTypes.string,
     currentPanel: PropTypes.string
   };
 
@@ -40,7 +41,7 @@ class DataDisplay extends Component {
   getColumnHeaderStyle = key => {
     let style;
 
-    if (key === this.props.currentColumn) {
+    if (key === this.props.currentColumn || key === this.props.previousColumn) {
       if (key === this.props.labelColumn) {
         style = styles.dataDisplayHeaderLabelSelected;
       } else if (this.props.selectedFeatures.includes(key)) {
@@ -64,7 +65,7 @@ class DataDisplay extends Component {
   getColumnCellStyle = key => {
     let style;
 
-    if (key === this.props.currentColumn) {
+    if (key === this.props.currentColumn || key === this.props.previousColumn) {
       if (key === this.props.labelColumn) {
         style = styles.dataDisplayCellLabelSelected;
       } else if (this.props.selectedFeatures.includes(key)) {
@@ -90,45 +91,46 @@ class DataDisplay extends Component {
 
     return (
       <div id="data-display" style={styles.panel}>
-        <div style={styles.statement}>
-          Predict{" "}
-          <span style={styles.statementLabel}>
-            {this.props.labelColumn || "..."}
-          </span>
-          {currentPanel === "dataDisplayFeatures" && (
-            <span>
-              {" "}
-              based on{" "}
-              <span style={styles.statementFeature}>
-                {this.props.selectedFeatures.length > 0
-                  ? this.props.selectedFeatures.join(", ")
-                  : ".."}
-              </span>
-              {"."}
-            </span>
-          )}
-        </div>
-        <div style={styles.instruction}>
-          <br/>
-          {currentPanel === "dataDisplayLabel" && (
-            <div>
-              Select one column to predict:
-            </div>
-          )}
+        <div style={styles.largeText}>
           {currentPanel === "dataDisplaySingle" && (
-            <div>
-              Select a column to view correlation:
-            </div>
+            <div>Select a column to view its information:</div>
+          )}
+          {currentPanel === "dataDisplayDouble" && (
+            <div>Select two columns to view their correlation:</div>
+          )}
+          {currentPanel === "dataDisplayLabel" && (
+            <div>Select one column to predict:</div>
           )}
           {currentPanel === "dataDisplayFeatures" && (
-            <div>
-              Select one or more columns to do the prediction:
-            </div>
+            <div>Select one or more columns to do the prediction:</div>
           )}
         </div>
+
+        {["dataDisplayLabel", "dataDisplayFeatures"].includes(currentPanel) && (
+          <div style={styles.statement}>
+            Predict{" "}
+            <span style={styles.statementLabel}>
+              {this.props.labelColumn || "..."}
+            </span>
+            {currentPanel === "dataDisplayFeatures" && (
+              <span>
+                {" "}
+                based on{" "}
+                <span style={styles.statementFeature}>
+                  {this.props.selectedFeatures.length > 0
+                    ? this.props.selectedFeatures.join(", ")
+                    : ".."}
+                </span>
+                {"."}
+              </span>
+            )}
+            <br />
+          </div>
+        )}
+
         {this.state.showRawData && (
           <div style={styles.tableParent}>
-            <table style={styles.dataDisplayTable}>
+            <table id="data-display" style={styles.dataDisplayTable}>
               <thead>
                 <tr>
                   {data.length > 0 &&
@@ -189,6 +191,7 @@ export default connect(
     selectedFeatures: state.selectedFeatures,
     emptyCellDetails: getEmptyCellDetails(state),
     currentColumn: state.currentColumn,
+    previousColumn: state.previousColumn,
     currentPanel: state.currentPanel
   }),
   dispatch => ({
