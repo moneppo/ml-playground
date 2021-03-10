@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 import React, { Component } from "react";
 import PercentReserveSlider from "./PercentReserveSlider";
 import ColumnTypeSelector from "./ColumnTypeSelector";
+import LabelSelector from "./LabelSelector";
 import { connect } from "react-redux";
 import { styles } from "../constants";
 import { getShowChooseReserve } from "../redux";
@@ -24,6 +25,7 @@ class TrainingSettings extends Component {
             A.I. Bot will predict {this.props.labelColumn} based on{" "}
             {this.props.selectedFeatures.join(", ")}.
           </div>
+          <LabelSelector />
           {this.showChooseReserve && <PercentReserveSlider />}
           {!this.props.hideSpecifyColumns && <ColumnTypeSelector />}
         </div>
