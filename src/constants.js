@@ -237,6 +237,10 @@ export const styles = {
     backgroundColor: "black",
     color: "white"
   },
+  dataDisplayHeaderHighlighted: {
+    backgroundColor: "#64fff16b",
+    color: "white"
+  },
 
   dataDisplayCell: {
     paddingLeft: 20,
@@ -261,6 +265,8 @@ export const styles = {
     backgroundColor: featureColor
   },
   dataDisplayCellUnselected: {},
+  dataDisplayCellHighlighted: { backgroundColor: "#64fff16b" },
+
   crossTabCell0: {
     backgroundColor: "rgba(255,100,100, 0)"
   },
