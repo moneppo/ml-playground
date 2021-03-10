@@ -474,11 +474,16 @@ export default function rootReducer(state = initialState, action) {
         return {
           ...state,
           labelColumn: action.currentColumn,
-          currentColumn: action.currentColumn
+          //currentColumn: action.currentColumn
         };
       } else {
         return state;
       }
+    } else if (state.currentPanel === "dataDisplaySingle") {
+      return {
+        ...state,
+        currentColumn: action.currentColumn
+      };
     } else if (state.currentPanel === "dataDisplayFeatures") {
       if (state.selectedFeatures.includes(action.currentColumn)) {
         return {
@@ -486,13 +491,13 @@ export default function rootReducer(state = initialState, action) {
           selectedFeatures: state.selectedFeatures.filter(
             item => item !== action.currentColumn
           ),
-          currentColumn: undefined
+          //currentColumn: undefined
         };
       } else if (action.currentColumn !== state.labelColumn) {
         return {
           ...state,
           selectedFeatures: [...state.selectedFeatures, action.currentColumn],
-          currentColumn: action.currentColumn
+          //currentColumn: action.currentColumn
         };
       } else {
         return state;
@@ -985,6 +990,7 @@ const panelList = [
   { id: "selectDataset", label: "Import" },
   { id: "specifyColumns", label: "Columns" },
   { id: "dataDisplayLabel", label: "Label" },
+  { id: "dataDisplaySingle", label: "Feature" },
   { id: "dataDisplayFeatures", label: "Features" },
   { id: "selectTrainer", label: "Trainer" },
   { id: "trainModel", label: "Train" },
@@ -1085,11 +1091,14 @@ export function getPanelButtons(state) {
     prev = isPanelEnabled(state, "selectDataset")
       ? { panel: "selectDataset", text: "Back" }
       : null;
-    next = isPanelEnabled(state, "dataDisplayFeatures")
-      ? { panel: "dataDisplayFeatures", text: "Continue" }
+    next = isPanelEnabled(state, "dataDisplaySingle")
+      ? { panel: "dataDisplaySingle", text: "Continue" }
       : null;
-  } else if (state.currentPanel === "dataDisplayFeatures") {
+  } else if (state.currentPanel === "dataDisplaySingle") {
     prev = { panel: "dataDisplayLabel", text: "Back" };
+    next = { panel: "dataDisplayFeatures", text: "Continue" };
+  } else if (state.currentPanel === "dataDisplayFeatures") {
+    prev = { panel: "dataDisplaySingle", text: "Back" };
     next = isPanelEnabled(state, "selectTrainer")
       ? { panel: "selectTrainer", text: "Continue" }
       : isPanelEnabled(state, "trainModel")

@@ -108,6 +108,24 @@ class DataDisplay extends Component {
             </span>
           )}
         </div>
+        <div style={styles.instruction}>
+          <br/>
+          {currentPanel === "dataDisplayLabel" && (
+            <div>
+              Select one column to predict:
+            </div>
+          )}
+          {currentPanel === "dataDisplaySingle" && (
+            <div>
+              Select a column to view correlation:
+            </div>
+          )}
+          {currentPanel === "dataDisplayFeatures" && (
+            <div>
+              Select one or more columns to do the prediction:
+            </div>
+          )}
+        </div>
         {this.state.showRawData && (
           <div style={styles.tableParent}>
             <table style={styles.dataDisplayTable}>
